@@ -1,0 +1,52 @@
+- cetuxi_w3.txt: cetuxi from Dropbox DATABASE DTB_Treatments_Update_Novembre2019.xlsx / home/data/work/pocetuxi/cetuxi_w3_nov2019.txt
+- irinotecan_w3.txt: irinotecan from Dropbox mine strata/december_data/w3.txt
+- RNAseq_OVERVIEW.tsv: samples from Dropbox DATABASE RNAseq_OVERVIEW.xlsx (downloaded the 8th of April 2020, /home/data/Dropbox/work/rnaseq_biodiversa/rnaseq_metadata/new/RNAseq_OVERVIEW.tsv)
+  withheader.tsv is a version with a more computationally friendly single line header, done by hand for now
+- list of biod files from pdxbank files
+
+
+on skylark:
+(base) elena@skylark:/mnt/pdxbank/RNAseq_large/04_19_firstbatch$ find fastq/ -type f -name "*fastq.gz" -exec basename {} \; > list_all_first
+(base) elena@skylark:/mnt/pdxbank/RNAseq_large/07_19_secondbatch$ find fastq/ -type f -name "*fastq.gz" -exec basename {} \; > list_all_second
+(base) elena@skylark:/mnt/pdxbank/RNAseq_large/10_19_thirdbatch$ find . -type f -name "*fastq.gz" -exec basename {} \; > list_all_third
+questo e` sbagliato era una copia della versione con file corrotti:
+(base) elena@skylark:/mnt/pdxbank/RNAseq_large/01_20_fourthbatch$ find . -type f -name "*fastq.gz" -exec basename {} \; > list_all_fourth
+on godot:
+egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4$ find . -type f -name "*fastq.gz" -exec basename {} \; > list_all_fourth
+
+egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/metadata_april2020$ scp pdxbankRW@pdxbank.polito.it:/volume1/pdx/RNAseq_large/*batch/list_all_* .
+pdxbankRW@pdxbank.polito.it's password:
+cp /mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4/list_all_fourt .
+
+And n-esimo check degli md5, ricalcolati per il terzo batch per sicurezza:
+(bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4/Batch-3/fastq$ diff <(sort md5_new) <(cat *md5 |sort)
+(bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4/Batch-3/fastq$ 
+
+egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4/Batch-4/fastq$ diff <(cat *md5 | sort) <(sort md5_new)
+egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/local/share/data/shipment_4/Batch-4/fastq$ 
+
+#### First manual checks
+
+egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/metadata_april2020$ 
+$ cat list_all_* |  sort | uniq  > have_fastq
+$ cut -f 1,2 --complement RNAseq_OVERVIEW.tsv  | sed 1d  | sed 1d | tr -s "\t" "\n" | sort | uniq > have_metadata
+$ wc -l have_fastq 
+938 have_fastq
+$ bawk '$1 != ""' have_metadata | wc -l
+1231
+
+$ bawk '$1 != ""' have_metadata | filter_1col 1 <(tr  "_" "\t"  < have_fastq| cut -f1)  | wc -l
+932
+
+$ bawk '$1 != ""' have_metadata | filter_1col -v 1 <(tr  "_" "\t"  < have_fastq| cut -f1)  > hp_last_shipment
+
+We need metadata for:
+egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/metadata_april2020$ tr  "_" "\t"  < have_fastq| cut -f1 |filter_1col -v 1 <(bawk '$1 != ""' have_metadata) 
+CRC0327LMO0B04043001R01000
+CRC0327LMO0B04043002R01000
+CRC0327LMO0B04044001R01000
+CRC0327LMO0B04044002R01000
+CRC0534LMO0B03021005R01000
+CRC0534LMO0B03021006R01000
+
+TODO ask Franceschino, notes in diary about proposal of remapping.
