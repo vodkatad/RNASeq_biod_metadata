@@ -1,0 +1,56 @@
+include: "./conf.sk"
+
+rule wide_to_long_metadata:
+    input: DATA_DIR+"/RNAseq_OVERVIEW_withheader.tsv"
+    output: "metadata"
+    params: tool=BIN_DIR+"/overview2long"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+
+
+rule has_metadata:
+    input: "metadata"
+    output: "has_metadata"
+    shell:
+        """
+            cut -f 2 {input} | sort | uniq > {output}
+        """
+
+rule batches:
+    input: BATCHES_FASTQS
+    output: "fastq_batches"
+    run:
+        batch = 1
+        with open(output[0], 'w') as out:
+            for f in input:
+                with open(f,'r') as inf:
+                    for l in inf.readlines():
+                        l = l.rstrip("\n")
+                        l = l.replace('_R1.fastq.gz','')
+                        out.write(l + "\t" + str(batch) + "\n")
+                    batch += 1            
+
+rule info_and_fastq:
+    input: meta="metadata", fastq="fastq_batches"
+    output: "complete_samples_batch"
+    shell:
+        """
+            cat {input.fastq} | filter_1col 1 <(cut -f 2 {input.meta}) > {output}
+        """
+
+# Note: for batch correction we want the smaller batch a genealogy appears, but for alignment we want the higher one
+## Progressive enrichment of metadata
+# TODO rule add batch
+
+# TODO rule add depth?
+
+# TODO rule add in vivo responses
+
+
+
+# rule add mutations from dtb_mutations?
+
+# Will then select all PDO, all PDX and all human samples from the whole list to align all together? Downloading from different places will
+# be complicated tough...

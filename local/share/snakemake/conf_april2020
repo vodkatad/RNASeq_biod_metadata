@@ -1,0 +1,19 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+DATE="april2020"
+DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
+
+BATCHES_FASTQS=[DATA_DIR + '/' + x for x in ["list_all_first","list_all_second","list_all_third","list_all_fourth"]]
