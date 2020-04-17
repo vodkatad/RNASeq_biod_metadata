@@ -1,7 +1,9 @@
+# Use snakemake metadata_forall  to check if you have basic metadata available for all the samples in the batches
+# that you want to analyze.
 include: "./conf.sk"
 
 rule wide_to_long_metadata:
-    input: DATA_DIR+"/RNAseq_OVERVIEW_withheader.tsv"
+    input: DATA_DIR+"/RNAseq_OVERVIEW_withheader_fixed.tsv"
     output: "metadata"
     params: tool=BIN_DIR+"/overview2long"
     shell:
@@ -40,15 +42,57 @@ rule info_and_fastq:
             cat {input.fastq} | filter_1col 1 <(cut -f 2 {input.meta}) > {output}
         """
 
-# Note: for batch correction we want the smaller batch a genealogy appears, but for alignment we want the higher one
+rule metadata_forall:
+    input: "complete_samples_batch", "fastq_batches"
+    shell:
+        """
+            n1=$(cat {input[0]} | wc -l);
+            n2=$(cat {input[1]} | wc -l);
+            if [ "$n1" -eq "$n2" ]; then
+                echo "Good to go!"
+            else
+                echo "Go back to square one!"
+            fi;
+        """
+
+# Note: for batch correction we want the smaller batch a genealogy appears (probably...for library prep batch effect honestly we will never be sure), 
+# but for alignment we want the higher one
 ## Progressive enrichment of metadata
-# TODO rule add batch
+## TODO keep min/max whatever check univocity
+rule metadata_batch:
+    input: batch="complete_samples_batch", metadata="metadata"
+    output: "metadata_batch"
+    shell:
+        """
+            translate -a -n {input.metadata} 1 < {input.batch} > {output}
+        """
 
-# TODO rule add depth?
+# TODO rule add depth? HOW? Ask Franceschino or Claudio for the list.
 
-# TODO rule add in vivo responses
+rule add_cetuxi:
+    input: start="metadata_batch", add=DATA_DIR+"/cetuxi_w3.txt"
+    output: "metadata_batch_w3vivocetuxi"
+    shell:
+        """
+            bawk '{{print $0,substr($1,0,7)}}' {input.start} | translate -v -e NA {input.add} 4 > {output}
+        """
 
+rule add_irino:
+    input: start="metadata_batch_w3vivocetuxi", add=DATA_DIR+"/irinotecan_w3.txt"
+    output: "metadata_batch_w3vivocetuxi_w3vivoirino"
+    shell:
+        """
+            bawk '{{print $0,substr($1,0,7)}}' {input.start} | translate -v -e NA <(sed 1d {input.add} | bawk '{{print $1,$2/100}}') 5 > {output}
+        """
 
+# rule add_sanger:
+#     input: start="metadata_batch_w3vivocetuxi_w3vivoirino", add=DATA_DIR+"/sanger.txt"
+#     shell:
+#         """
+        
+#         """
+
+# rule add_vwes:
 
 # rule add mutations from dtb_mutations?
 

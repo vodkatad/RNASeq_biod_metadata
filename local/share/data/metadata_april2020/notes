@@ -1,7 +1,8 @@
 - cetuxi_w3.txt: cetuxi from Dropbox DATABASE DTB_Treatments_Update_Novembre2019.xlsx / home/data/work/pocetuxi/cetuxi_w3_nov2019.txt
 - irinotecan_w3.txt: irinotecan from Dropbox mine strata/december_data/w3.txt
 - RNAseq_OVERVIEW.tsv: samples from Dropbox DATABASE RNAseq_OVERVIEW.xlsx (downloaded the 8th of April 2020, /home/data/Dropbox/work/rnaseq_biodiversa/rnaseq_metadata/new/RNAseq_OVERVIEW.tsv)
-  withheader.tsv is a version with a more computationally friendly single line header, done by hand for now
+  _withheader.tsv is a version with a more computationally friendly single line header, done by hand for now
+  _fixed.tsv is the version fixed for 6 PDO after crosschecking them with Simonetta
 - list of biod files from pdxbank files
 
 
@@ -49,4 +50,9 @@ CRC0327LMO0B04044002R01000
 CRC0534LMO0B03021005R01000
 CRC0534LMO0B03021006R01000
 
-TODO ask Franceschino, notes in diary about proposal of remapping.
+Asked Franceschino, notes in diary about proposal of remapping.
+Franceschino and Simo answered (mail RNAseq - magnum 8th of April 2020): these organoids have been fixed, now we are ok cause we lack only:
+- the samples that did not succeed (library prep fail or insuff depth in the fourth shipment)
+We already have the metadata also for the next shipment (still to be sent), a single missing sample:
+- CRC1070PRX0B02001TUMR01000 
+New fixed metadata!
