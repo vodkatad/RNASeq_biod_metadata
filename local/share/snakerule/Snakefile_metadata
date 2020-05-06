@@ -98,3 +98,75 @@ rule add_irino:
 
 # Will then select all PDO, all PDX and all human samples from the whole list to align all together? Downloading from different places will
 # be complicated tough...
+rule all_n_samples_comparisons:
+    input: expand("batch_{b}.txt", b=list(BATCHES_COUNTS.keys()))
+
+rule n_samples_comparisons:
+    input: meta="metadata_batch", counts=lambda wildcards: BASE_DIR+"/"+BATCHES_COUNTS[wildcards.b]
+    output: "batch_{b}.txt"
+    shell:
+        """
+            bawk '$3=={wildcards.b}' {input.meta} | wc -l > {output}
+            zcat {input.counts} | bawk 'NR==1' | cut -f 7-  | tr "\\t" "\\n" | wc -l >> {output}
+        """
+
+rule choose_batch: 
+    input: meta="metadata_batch"
+    output: chosen_batch="merged_batch.tsv"
+    run:
+        import pandas as pd 
+        batch = pd.read_csv(input.meta, sep="\t")
+        batch.columns = ['id','class','batch']
+        chosen = batch.groupby(['id'])['batch'].max()
+        chosen.to_csv(output.chosen_batch, sep="\t")
+
+
+rule matrix_hs_mm: 
+    input: "merged_batch.tsv", [BASE_DIR+"/"+BATCHES_COUNTS[b] for b in list(BATCHES_COUNTS.keys())]
+    output: matrix="merged_hs_mm.tsv.gz", info="merged_info.tsv"
+    run:
+        import pandas as pd 
+        batch = pd.read_csv(input[0], sep="\t")
+        batch.columns = ['id','batch']
+        res = None
+        b = 1
+        for count in input[1:]:
+            print(count)
+            count = pd.read_csv(count, sep="\t", index_col=0)
+            wanted = batch[batch['batch'] == b].id
+            if b == 1:
+                info = count[['Chr','Start','End','Strand','Length']]
+            wantedcolumns = count.columns.intersection(wanted)
+            if b != 1:
+                res = count[wantedcolumns].merge(res, suffixes=(False, False), left_index=True, right_index=True)
+            else:
+                res = count[wantedcolumns]
+            b += 1
+        res.to_csv(output.matrix, sep="\t", compression='gzip', header=True)
+        info.to_csv(output.info, sep="\t")
+
+
+rule merged_human:
+    input: "merged_hs_mm.tsv.gz"
+    output: "merged_hs.tsv.gz"
+    shell:
+        """
+            zcat {input} | bawk 'NR==1' > {output}.tmp
+            zcat {input} | grep "^H_" >> {output}.tmp
+            gzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """
+
+#rule check TODO
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/april2020$ zcat merged_hs_mm.tsv.gz  | wc -l
+#109888
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/april2020$ zcat merged_hs_mm.tsv.gz  | bawk '{print NF}' |head
+#937
+
+rule selected_metadata:
+    input: meta="metadata_batch_w3vivocetuxi_w3vivoirino", sel="merged_batch.tsv"
+    output: "selected_metadata"
+    shell:
+        """
+            bawk '{{print $1,$3,$2,$4,$5}}' {input.meta} | filter_2col --both-orders 1 2 {input.sel} > {output}
+        """

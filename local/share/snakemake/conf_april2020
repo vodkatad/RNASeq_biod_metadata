@@ -17,3 +17,18 @@ DATE="april2020"
 DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
 
 BATCHES_FASTQS=[DATA_DIR + '/' + x for x in ["list_all_first","list_all_second","list_all_third","list_all_fourth"]]
+
+#zgrep -v '^#' fastq.featurecounts.ribo.ex.count.gz | cut -f 1,7- \
+#| perl -pe 'if($.==1){s|STAR/fastq/||g; s|.STAR[^\s]+.bam||g; s|_S\d+(\s)|\1|g}' \
+#| gzip > GEP.count.gz
+# the perl -pe is not needed for our samples (?)
+
+#(bit_rnaseq_2.8) egrassi@godot:/mnt/bioionfotree/prj/Biodiversa_batch4/batch4/BiT/dataset/v1$ zcat fastq.featurecounts.ribo.ex.count.gz | head -n1 | cut -f1,7-  | tr "\t" "\n" | wc -l
+#259
+BASE_DIR="/mnt/bioionfotree/prj"
+BATCHES_COUNTS = {
+    '1': 'Biodiversa_batch1/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '2': 'Biodiversa_batch2/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '3': 'Biodiversa_batch3/BiT/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '4': 'RNAseq_biodiversa/dataset/v1/fastq.featurecounts.ribo.ex.count.gz'
+}
