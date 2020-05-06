@@ -126,7 +126,7 @@ rule matrix_hs_mm:
     output: matrix="merged_hs_mm.tsv.gz", info="merged_info.tsv"
     run:
         import pandas as pd 
-        batch = pd.read_csv(input[0], sep="\t")
+        batch = pd.read_csv(input[0], sep="\t", header=None)
         batch.columns = ['id','batch']
         res = None
         b = 1
@@ -137,6 +137,9 @@ rule matrix_hs_mm:
             if b == 1:
                 info = count[['Chr','Start','End','Strand','Length']]
             wantedcolumns = count.columns.intersection(wanted)
+            wantedcolumns.to_frame().to_csv(str(b)+"meh.tsv")
+            count.columns.to_frame().to_csv(str(b)+"meh1.tsv")
+            wanted.to_frame().to_csv(str(b)+"meh2.tsv")
             if b != 1:
                 res = count[wantedcolumns].merge(res, suffixes=(False, False), left_index=True, right_index=True)
             else:
@@ -169,4 +172,12 @@ rule selected_metadata:
     shell:
         """
             bawk '{{print $1,$3,$2,$4,$5}}' {input.meta} | filter_2col --both-orders 1 2 {input.sel} > {output}
+        """
+
+rule gene_len:
+    input: "merged_info.tsv"
+    output: "gene_len"
+    shell:
+        """
+            cut -f1,6 {input} > {output}
         """
