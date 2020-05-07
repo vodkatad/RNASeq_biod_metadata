@@ -179,5 +179,5 @@ rule gene_len:
     output: "gene_len"
     shell:
         """
-            cut -f1,6 {input} > {output}
+            cut -f1,6 {input} | sed 's/Length/length/1' > {output}
         """
