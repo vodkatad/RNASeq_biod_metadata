@@ -33,3 +33,5 @@ BATCHES_COUNTS = {
     '3': 'Biodiversa_batch3/BiT/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
     '4': 'RNAseq_biodiversa/dataset/v1/fastq.featurecounts.ribo.ex.count.gz'
 }
+
+JSON_HEAD=DATA_DIR+"/head"

@@ -181,3 +181,30 @@ rule gene_len:
         """
             cut -f1,6 {input} | sed 's/Length/length/1' > {output}
         """
+
+### Json for Las repoindex ###
+#biod id	ID Vale	id	LAS_Validation	clone_N	cloning_date	species
+rule json_meta:
+    input: metadata="metadata_batch"
+    output: "{b}_meta_for_json.tsv"
+    shell:
+        """
+            echo -e "ID\\tLAS_Validation\\tlabel" > {output}
+            bawk '$3=="{wildcards.b}" {{print $1,"TRUE",$2}}' {input.metadata} >> {output}
+        """
+
+rule json:
+    input: tsv="{b}_meta_for_json.tsv", head=JSON_HEAD+"_{b}.json"
+    output: "batch{b}_metadata.json"
+    params: tool=BIN_DIR+"/tsv_to_json_metadata"
+    shell:
+        """
+           cp {input.head} {output}
+           {params.tool} -i {input.tsv} -j {output}
+        """
+
+rule all_json:
+    input: expand("batch{b}_metadata.json", b=range(1, len(BATCHES_FASTQS)+1))
+
+
+    
