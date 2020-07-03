@@ -15,10 +15,10 @@ SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
 DATE="april2020"
 DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
+ 
+OVERVIEW=DATA_DIR+"/RNAseq_OVERVIEW_withheader_fixed2.tsv"
 
-OVERVIEW=DATA_DIR+"/RNAseq_OVERVIEW_withheader_fixed.tsv"
-
-BATCHES_FASTQS=[DATA_DIR + '/' + x for x in ["list_all_first","list_all_second","list_all_third","list_all_fourth"]]
+BATCHES_FASTQS=[DATA_DIR + '/' + x for x in ["list_all_first","list_all_second","list_all_third","list_all_fourth", "list_all_fifth"]]
 # CRC0017LMX0A02204TUMR02000 e` di troppo, depth non raggiunta
 
 #zgrep -v '^#' fastq.featurecounts.ribo.ex.count.gz | cut -f 1,7- \
@@ -33,7 +33,8 @@ BATCHES_COUNTS = {
     '1': 'Biodiversa_batch1/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
     '2': 'Biodiversa_batch2/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
     '3': 'Biodiversa_batch3/BiT/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
-    '4': 'RNAseq_biodiversa/dataset/v1/fastq.featurecounts.ribo.ex.count.gz'
+    '4': 'RNAseq_biodiversa/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',   
+    '5': 'RNAseq_biodiversa/dataset/batch5/fastq.featurecounts.ribo.ex.count.gz',   
 }
 
 JSON_HEAD=DATA_DIR+"/head"

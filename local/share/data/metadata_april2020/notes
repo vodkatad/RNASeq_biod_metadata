@@ -54,5 +54,18 @@ Asked Franceschino, notes in diary about proposal of remapping.
 Franceschino and Simo answered (mail RNAseq - magnum 8th of April 2020): these organoids have been fixed, now we are ok cause we lack only:
 - the samples that did not succeed (library prep fail or insuff depth in the fourth shipment)
 We already have the metadata also for the next shipment (still to be sent), a single missing sample:
-- CRC1070PRX0B02001TUMR01000 
+CRC1070PRX0B02001TUMR01000
+
 New fixed metadata!
+
+### Adding fifth batch
+
+egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/metadata_april2020$ ls /mnt/bioionfotree/prj/RNAseq_biodiversa/local/share/data/shipment_5/batch*/fastq/*fastq.gz | tr "/" "\t" | cut -f 12 > list_all_fifth
+
+Dotto non ha mai risposto:
+Ciao a tutti, ho copiato tutti i file e controllato gli md5: tutti ok.
+Riguardo il recupero dei campioni a cui mancavano read del batch4: 9 mi tornano, ma c'e` in piu` anche:
+CRC0269PRX0A01201TUMR01000 
+
+../../local/share/data/metadata_april2020/RNAseq_OVERVIEW_withheader_fixed2.tsv
+has 
