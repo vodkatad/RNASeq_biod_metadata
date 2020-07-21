@@ -216,3 +216,29 @@ rule all_json:
 
 
     
+### lymphomas murine (based on PC) or human (based on scores)
+# sort uniq on leuco is needed cause:
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020$ cut -f 1 ../../local/share/data/stromal_contamination.txt | sort | uniq -d
+#... there are duplicates with different scores, but not different classifications:
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020$ sed 1d /mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/stromal_contamination.txt | bawk '$3 > 10{print $1,"RNA_marker"} $3 <= 10 {print $1,'pass'}' | sort | uniq | cut -f 1 | sort | uniq -d | wc -l
+#0
+rule annotation:
+    input: meta='selected_metadata', pcs=PCS, leuco=SCORES
+    output: "selected_metadata_annot"
+    shell:
+        """
+            translate -a <(sed 1d {input.pcs} | bawk '$3 < -40{{print $1,"RNA_PC"}} $3 >= -40 {{print $1,"pass"}}' |  tr "." "-") 1 < {input.meta} > {output}.tmp
+            translate -a -v -e 'NA' <(sed 1d {input.leuco} | bawk '$3 > 10{{print $1,"RNA_marker"}} $3 <= 10 {{print $1,"pass"}}' | sort | uniq) 1 < {output}.tmp > {output}
+        """
+
+### TODO list of lymphomas for Francescone and methy
+#Ecco un excel con il matricione nei primo foglio e le annotazioni nel secondo, con una colonna con i linfomi:
+#- identificati tramite analisi di PC: RNA_PC
+#- identificati con marker analysis da Claudio: RNA_marker
+#- secondo metilazione: METHY_L
+#- secondo Fra: FRA_L
+
+
+### TODO? list of samples for biobanca/PDO project? Do we work on a subset only?
+
+
