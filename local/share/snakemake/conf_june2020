@@ -10,11 +10,13 @@ def find_prj_root(path=os.getcwd()):
 
 PRJ_ROOT=find_prj_root()
 BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
 DATE="april2020"
 DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
+DATA=PRJ_ROOT+"/local/share/data"
  
 OVERVIEW=DATA_DIR+"/RNAseq_OVERVIEW_withheader_fixed2.tsv"
 
@@ -76,3 +78,7 @@ PCS=PRJ_ROOT+'/local/share/data/pcs'
 # pcs <- ppca(vsd, 'type', 1, 2, returnData=TRUE)
 # write.table(pcs, file="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/pcs", sep="\t", quote=F)
 SCORES=PRJ_ROOT+'/local/share/data/stromal_contamination.txt'
+
+#info per limfomi da Fra e dalla metilazione:
+FRA=DATA+"/linfomi_Fra.txt"
+MARCO=DATA+"/linfomi_Marco"
