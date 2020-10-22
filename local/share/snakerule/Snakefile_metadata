@@ -248,4 +248,16 @@ rule add_linfo:
 #egrassi@godot:/mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset$ grep CRC0164LMX0B /mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020/selected_metadata_annot
 #CRC0164LMX0B02202TUMR02000      NA      pass    1       LMX_BASALE      NA      NA
 
+#CRC0385 is not there
+# really stringent parameters, use to give values to collaborators, for internal analyses we could relax the stringency
+# as of now METHYL_L with clustering approach
+rule filtered_metadata:
+    input: "selected_metadata_annot_final"
+    output: "selected_metadata_annot_final_nolinfo_nooutlier"
+    params: outliers="CRC0164LMX0B02202TUMR02000"
+    shell:
+        """
+            head -n 1 {input} > {output}
+            sed 1d {input} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass" || $2 == "NA") && ($3 =="pass") && ($4 == "pass" || $4 == "NA") && ($5 == "pass" || $5 == "NA")' >> {output}
+        """
 ### TODO? list of samples for biobanca/PDO project? Do we work on a subset only?
