@@ -258,6 +258,6 @@ rule filtered_metadata:
     shell:
         """
             head -n 1 {input} > {output}
-            sed 1d {input} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass" || $2 == "NA") && ($3 =="pass") && ($4 == "pass" || $4 == "NA") && ($5 == "pass" || $5 == "NA")' >> {output}
+            sed 1d {input} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass" || $2 == "NA") && ($3 =="pass") && ($4 == "pass" || $4 == "NA") && ($5 == "pass" || $5 == "NA" || $5 =="NotTested")' >> {output}
         """
 ### TODO? list of samples for biobanca/PDO project? Do we work on a subset only?
