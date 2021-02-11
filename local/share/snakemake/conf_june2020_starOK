@@ -1,0 +1,72 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+DATE="april2020"
+DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
+DATA=PRJ_ROOT+"/local/share/data"
+ 
+OVERVIEW=DATA_DIR+"/RNAseq_OVERVIEW_withheader_fixed2.tsv"
+
+BATCHES_FASTQS=[DATA_DIR + '/' + x for x in ["list_all_first","list_all_second","list_all_third","list_all_fourth", "list_all_fifth"]]
+# CRC0017LMX0A02204TUMR02000 e` di troppo, depth non raggiunta
+
+#zgrep -v '^#' fastq.featurecounts.ribo.ex.count.gz | cut -f 1,7- \
+#| perl -pe 'if($.==1){s|STAR/fastq/||g; s|.STAR[^\s]+.bam||g; s|_S\d+(\s)|\1|g}' \
+#| gzip > GEP.count.gz
+# the perl -pe is not needed for our samples (?)
+
+#(bit_rnaseq_2.8) egrassi@godot:/mnt/bioionfotree/prj/Biodiversa_batch4/batch4/BiT/dataset/v1$ zcat fastq.featurecounts.ribo.ex.count.gz | head -n1 | cut -f1,7-  | tr "\t" "\n" | wc -l
+#259
+BASE_DIR='/mnt/bioionfotree/prj'
+BATCHES_COUNTS = {
+    '1': 'Biodiversa_batch1/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '2': 'Biodiversa_batch2/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '3': 'Biodiversa_batch3/BiT/dataset/v1/fastq.featurecounts.ribo.ex.count.gz',
+    '4': 'RNAseq_biodiversa/dataset/batch4_STARok/fastq.featurecounts.ribo.ex.count.gz',   
+    '5': 'RNAseq_biodiversa/dataset/batch5_STARok/fastq.featurecounts.ribo.ex.count.gz',   
+}
+USABLE_READS = {
+    '1': 'Biodiversa_batch1/dataset/v1/usable_reads',
+    '2': 'Biodiversa_batch2/dataset/v1/usable_reads',
+    '3': 'Biodiversa_batch3/BiT/dataset/v1/usable_reads',
+    '4': 'RNAseq_biodiversa/dataset/batch4_STARok/usable_reads',   
+    '5': 'RNAseq_biodiversa/dataset/batch5_STARok/usable_reads',   
+}
+
+JSON_HEAD=DATA_DIR+"/head"
+
+# TODOs:
+# - look at distributions to decide thresholds (-40 and 10 before, move them in the conf - while changing the rule remember to put them in che conf for the old july2020 too for historical tracing)
+# - split rule annotation in two: annotation_pc_lympho and filter_pc_linfo
+    ###first done
+# - add_linfo rule should use new methylation lymphomas info
+
+# other TODOs:
+# - put together usable_reads from /mnt/bioionfotree/prj/Bioidiversa_batch* (use correct batch for resequencings!) and add them to the metadata
+# - are usable reads on H only or also M? look at plots to find outliers
+
+# data to Umberto:
+# - follow the structure in /mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset/Biodiversa_up5/magnum/ in the new starOK directory (and remove old big files to avoid too much clutter, keeping rules should be sufficient)
+
+PCS='/mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset/Biodiversa_up5_starOK/pcs'
+
+# SCORES=PRJ_ROOT+'/local/share/data/stromal_contamination.txt'
+
+SCORES=DATA+"/fpkm_lymphoma_scores.tsv.gz"
+
+#info per limfomi da Fra e dalla metilazione:
+FRA=DATA+"/linfomi_Fra.txt"
+MARCO=DATA+"/linfomi_Marco"

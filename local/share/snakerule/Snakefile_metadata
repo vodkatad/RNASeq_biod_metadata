@@ -84,17 +84,6 @@ rule add_irino:
             bawk '{{print $0,substr($1,0,7)}}' {input.start} | translate -v -e NA <(sed 1d {input.add} | bawk '{{print $1,$2/100}}') 5 > {output}
         """
 
-# rule add_sanger:
-#     input: start="metadata_batch_w3vivocetuxi_w3vivoirino", add=DATA_DIR+"/sanger.txt"
-#     shell:
-#         """
-        
-#         """
-
-# rule add_vwes:
-
-# rule add mutations from dtb_mutations?
-
 # Will then select all PDO, all PDX and all human samples from the whole list to align all together? Downloading from different places will
 # be complicated tough...
 rule all_n_samples_comparisons:
@@ -260,4 +249,48 @@ rule filtered_metadata:
             head -n 1 {input} > {output}
             sed 1d {input} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass" || $2 == "NA") && ($3 =="pass") && ($4 == "pass" || $4 == "NA") && ($5 == "pass" || $5 == "NA" || $5 =="NotTested")' >> {output}
         """
-### TODO? list of samples for biobanca/PDO project? Do we work on a subset only?
+
+####################### roar misplaced ########
+
+#rule mM:
+#    input:
+
+
+#### n. of reads, % assigned on tot
+# (bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/dataset/v1$ zless fastq.featurecounts.ribo.ex.count.gz | cut -f 7 | bawk 'BEGIN{n=0}{n=n+$1}END{print n}'
+# 8841218
+# (bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/dataset/v1$ sed 1d usable_reads  | bawk '{print $1,$7,$7/$2}'  |head -n 1
+# CRC0017LMX0A02204TUMR02000      8841218 0.78570110786367797
+# (bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/dataset/v1$ zless fastq.featurecounts.ribo.ex.count.gz | grep "^H_" | cut -f 7 | bawk 'BEGIN{n=0}{n=n+$1}END{print n}'
+# 8608885
+# (bit_rnaseq_2.8) egrassi@godot:/mnt/trcanmed/bioinfotree/prj/RNAseq_biodiversa/dataset/v1$ zless fastq.featurecounts.ribo.ex.count.gz | grep "^M_" | cut -f 7 | bawk 'BEGIN{n=0}{n=n+$1}END{print n}'
+# 232333
+
+# sample  tot     unmap   ribo    non_ribo_multi_map      non_ribo_uniq_map       Assigned        Unassigned_Ambiguity    Unassigned_NoFeatures
+rule n_reads:
+    input: 'merged_batch.tsv','merged_hs_mm.tsv.gz', [BASE_DIR+'/'+USABLE_READS[b] for b in list(USABLE_READS.keys())]
+    output: matrix='reads_info.tsv.gz'
+    run:
+        import pandas as pd
+        batch = pd.read_csv(input[0], sep="\t", header=None)
+        batch.columns = ['id','batch']
+        counts = pd.read_csv(input[1], sep="\t", index_col=0)
+        # gather total mouse and human reads
+        h_counts = counts.filter(regex="^H_", axis=0).sum(axis=0)
+        m_counts = counts.filter(regex="^M_", axis=0).sum(axis=0)
+        count_res = pd.DataFrame(data={'h_tot':h_counts, 'm_tot':m_counts, 'frac_h' : h_counts/(m_counts+h_counts)})
+        usable_reads_res = pd.DataFrame()
+        b = 1
+        for ur in input[2:]:
+            print(ur)
+            usable_reads = pd.read_csv(ur, sep="\t", index_col=0, usecols=['sample', 'tot','Assigned'])
+            usable_reads['frac_assigned'] = usable_reads['Assigned']/usable_reads['tot']
+            wanted = batch[batch['batch'] == b].id
+            wantedrows = usable_reads.index.intersection(wanted)
+            usable_reads_res = usable_reads_res.append(usable_reads.loc[wantedrows])
+            b += 1
+        res = pd.concat([count_res, usable_reads_res], axis=1, sort=True) # here append only and then concat out of the for TODO
+        res.to_csv(output.matrix, sep="\t", compression='gzip', header=True)
+
+
+# selected metadata filtered based on n reads with thr on frac_h and frac_assigned
