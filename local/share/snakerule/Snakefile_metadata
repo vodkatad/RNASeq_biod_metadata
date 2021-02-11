@@ -294,3 +294,13 @@ rule n_reads:
 
 
 # selected metadata filtered based on n reads with thr on frac_h and frac_assigned
+rule remove_samples_readsQC:
+    input: 'reads_info.tsv.gz'
+    output: 'removed_samples_readsQC'
+    params: thr_frac_h=THR_FRAC_H, thr_frac_assigned=THR_FRAC_ASSIGNED
+    shell:
+        """
+            zcat {input} | sed 1d | bawk '$4 < {params.thr_frac_h} || $7 < {params.thr_frac_assigned} {{print $1}}' > {output}
+        """
+ 
+# TODO last filtering step on selected_metadata_annot_final_nolinfo_nooutlier

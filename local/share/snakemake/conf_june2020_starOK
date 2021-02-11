@@ -70,3 +70,8 @@ SCORES=DATA+"/fpkm_lymphoma_scores.tsv.gz"
 #info per limfomi da Fra e dalla metilazione:
 FRA=DATA+"/linfomi_Fra.txt"
 MARCO=DATA+"/linfomi_Marco"
+
+
+# Manually selected thresholds after inspection of reads_info.tsv.gz and selected_metadata_values
+THR_FRAC_H=0.3
+THR_FRAC_ASSIGNED=0.5
