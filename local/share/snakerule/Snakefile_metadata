@@ -211,21 +211,44 @@ rule all_json:
 #... there are duplicates with different scores, but not different classifications:
 #egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020$ sed 1d /mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/stromal_contamination.txt | bawk '$3 > 10{print $1,"RNA_marker"} $3 <= 10 {print $1,'pass'}' | sort | uniq | cut -f 1 | sort | uniq -d | wc -l
 #0
-rule annotation:
+
+
+rule annotation_pc_lympho:
     input: meta='selected_metadata', pcs=PCS, leuco=SCORES
-    output: "selected_metadata_annot"
+    output: "selected_metadata_values"
     shell:
         """
-            translate -a <(sed 1d {input.pcs} | bawk '$3 < -40{{print $1,"RNA_PC"}} $3 >= -40 {{print $1,"pass"}}' |  tr "." "-") 1 < {input.meta} > {output}.tmp
-            translate -a -v -e 'NA' <(sed 1d {input.leuco} | bawk '$3 > 10{{print $1,"RNA_marker"}} $3 <= 10 {{print $1,"pass"}}' | sort | uniq) 1 < {output}.tmp > {output}
+            translate -a <(sed 1d {input.pcs} | cut -f1,2,3) 1 < {input.meta} > {output}.tmp
+            translate -a <(zcat {input.leuco} | sed 1d | cut -f1,4) 1 < {output}.tmp > {output}
         """
+
+## here i plot per la visualizzazione migliore dei thr?
+rule pcplot:
+    input: "selected_metadata_values"
+    params: tool=BIN_DIR+"/Plot_PC"
+    output: "PC1_{y}_{color}_{shape}.png"
+    shell:
+        """
+            {params.tool} -i {input} -y {wildcards.y} -c {wildcards.color} -s {wildcards.shape} -o {output}
+        """
+
+rule filter_pc_linfo:
+    input: "selected_metadata_values"
+    output: "selected_metadata_annot"
+    params: pc=PCS_2_THR, leuco=LEUCO_THR
+    shell:
+        """
+            cat {input} | cut -f1,2,4,5,6,7,8 | bawk '$3 >= {params.pc} {{print $0,"RNA_PC"}} $3 < {params.pc} {{print $0,"pass"}}' > {output}.tmp
+            cat {output}.tmp | bawk '$2 >= {params.leuco} {{print $0,"RNA_marker"}} $2 < {params.leuco} {{print $0,"pass"}}' | bawk '{{print $1,$9,$8,$4,$5,$6,$7}}' | sort | uniq > {output}
+        """
+
 
 ### TODO list of lymphomas for Francescone and methy
 #Ecco un excel con il matricione nei primo foglio e le annotazioni nel secondo, con una colonna con i linfomi:
 #- identificati tramite analisi di PC: RNA_PC
 #- identificati con marker analysis da Claudio: RNA_marker
-#- secondo metilazione: METHY_L
-#- secondo Fra: FRA_L
+#- secondo metilazione: METHY_L --> registered the new lympho annotation from pdx_methylation PC2>500
+#- secondo Fra: FRA_L --> registered the one from the new check of Fra
 ##- DONE :D
 rule add_linfo:
     input: annot="selected_metadata_annot", fra=FRA, marco=MARCO
@@ -236,18 +259,16 @@ rule add_linfo:
 # TODO mark as STRANGE 
 #egrassi@godot:/mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset$ grep CRC0164LMX0B /mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020/selected_metadata_annot
 #CRC0164LMX0B02202TUMR02000      NA      pass    1       LMX_BASALE      NA      NA
-
-#CRC0385 is not there
-# really stringent parameters, use to give values to collaborators, for internal analyses we could relax the stringency
-# as of now METHYL_L with clustering approach
+# CRC0385 is not there
+# We filter using only RNAseq internal criteria and use FRA and methyl info to evaluate the filters not for actual filtering (if something is bad here and good here we claim heterogeneity)
 rule filtered_metadata:
-    input: "selected_metadata_annot_final"
+    input: metadata="selected_metadata_annot_final", filter_seqqc='removed_samples_readsQC'
     output: "selected_metadata_annot_final_nolinfo_nooutlier"
-    params: outliers="CRC0164LMX0B02202TUMR02000"
+    params: outliers="CRC0164LMX0B02202TUMR02000" # this is already removed by the QC but since it's a known rogue...
     shell:
         """
-            head -n 1 {input} > {output}
-            sed 1d {input} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass" || $2 == "NA") && ($3 =="pass") && ($4 == "pass" || $4 == "NA") && ($5 == "pass" || $5 == "NA" || $5 =="NotTested")' >> {output}
+            head -n 1 {input.metadata} > {output}
+            sed 1d {input.metadata} | bawk -v strange={params.outliers} '$1 != strange' | bawk '($2 == "pass") && ($3 =="pass")' | filter_1col -v 1 {input.filter_seqqc} >> {output}
         """
 
 ####################### roar misplaced ########
@@ -289,7 +310,7 @@ rule n_reads:
             wantedrows = usable_reads.index.intersection(wanted)
             usable_reads_res = usable_reads_res.append(usable_reads.loc[wantedrows])
             b += 1
-        res = pd.concat([count_res, usable_reads_res], axis=1, sort=True) # here append only and then concat out of the for TODO
+        res = pd.concat([count_res, usable_reads_res], axis=1, sort=True)
         res.to_csv(output.matrix, sep="\t", compression='gzip', header=True)
 
 

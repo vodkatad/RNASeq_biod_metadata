@@ -65,13 +65,15 @@ PCS='/mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset/Biodiversa_up5_starOK/pcs'
 
 # SCORES=PRJ_ROOT+'/local/share/data/stromal_contamination.txt'
 
-SCORES=DATA+"/fpkm_lymphoma_scores.tsv.gz"
+SCORES="/mnt/trcanmed/snaketree/prj/DE_RNASeq/dataset/Biodiversa_up5_starOK/fpkm_lymphoma_scores.tsv.gz"
 
 #info per limfomi da Fra e dalla metilazione:
-FRA=DATA+"/linfomi_Fra.txt"
-MARCO=DATA+"/linfomi_Marco"
+FRA="/mnt/trcanmed/snaketree/prj/pdx_methylation/dataset/v2/minfi/All_samples_info_basic_v3.tsv" # last check done by Fra in 2020
+MARCO="/mnt/trcanmed/snaketree/prj/pdx_methylation/dataset/v2/minfi/PCA/PCA_methylationPDXs.tsv.gz" # all samples with PC2>500 are considered lymphos
 
 
 # Manually selected thresholds after inspection of reads_info.tsv.gz and selected_metadata_values
 THR_FRAC_H=0.3
-THR_FRAC_ASSIGNED=0.5
+THR_FRAC_ASSIGNED=0.6
+PCS_2_THR=30
+LEUCO_THR=48
