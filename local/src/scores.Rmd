@@ -1,0 +1,132 @@
+---
+title: "scores"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+
+p_fpkm_scores <- '/scratch/trcanmed/DE_RNASeq/dataset/Biodiversa_up5/fpkm_lymphoma_scores.tsv.gz'
+p_tmm_scores <- '/scratch/trcanmed/DE_RNASeq/dataset/Biodiversa_up5/tmm_lymphoma_scores.tsv.gz'
+p_metadata <- '/scratch/trcanmed/RNASeq_biod_metadata/dataset/july2020/selected_metadata_annot_final'
+
+cla <- read.table("/scratch/trcanmed/RNASeq_biod_metadata/local/share/data/stromal_contamination.txt", sep="\t", header=T)
+colnames(cla) <- c('sample_id_R', 'CAF', 'Leucocyte', 'Endothelial')
+cla <- cla[, c(1,2,3,4)]
+fpkm_scores <- read.table(gzfile(p_fpkm_scores), header=TRUE, stringsAsFactors=FALSE, sep="\t", quote="")
+tmm_scores <- read.table(gzfile(p_tmm_scores), header=TRUE, stringsAsFactors=FALSE, sep="\t", quote="")
+metadata <- read.table(p_metadata, header=TRUE, stringsAsFactors=FALSE, sep="\t", quote="")
+fpkm_scores$sample_id_R <- gsub(".2","-2", rownames(fpkm_scores), fixed=TRUE)
+tmm_scores$sample_id_R <- gsub(".2","-2", rownames(tmm_scores), fixed=TRUE)
+merge_1 <- merge(metadata, fpkm_scores, by="sample_id_R")
+merge_2 <- merge(merge_1, tmm_scores, by="sample_id_R")
+merge_3 <- merge(merge_2, cla, by="sample_id_R")
+
+score <- 'Leucocyte'
+
+compare <- function(x, y, log, nx, ny, color=NULL) {
+  if (log) {
+    x <- log10(x)
+    y <- log10(y)
+  }
+  pe <- cor.test(x, y)
+  d <- data.frame(x=x, y=y)
+  if (!is.null(color)) {
+    d$color <- as.factor(color)
+    print(ggplot(d, aes(x=x, y=y,color=color)) +geom_point()+theme_bw()
+        +xlab(nx)+ylab(ny)+labs(caption=paste0(pe$estimate, ', pval=', pe$p.value)))
+  } else {
+    print(ggplot(d, aes(x=x, y=y)) +geom_point()+theme_bw()
+        +xlab(nx)+ylab(ny)+labs(caption=paste0(pe$estimate, ', pval=', pe$p.value)))
+  }
+  return(pe)
+}
+```
+
+## Preliminary checks
+
+Merge ok? `r nrow(merge_2)` need to be same as `r nrow(metadata)` and `r nrow(fpkm_scores)` and `r nrow(tmm_scores)`
+
+Merge ok? `r nrow(merge_3)` need to be same as `r nrow(cla)`
+
+## Leuco scores 
+
+FPKM vs TMM:
+
+```{r fpkm-tmm}
+#pe <- cor.test(merge_2[, paste0(score, ".x")], merge_2[, paste0(score, ".y")])
+#ggplot(d, aes(x=x, y=y)) +geom_point()+theme_bw()
+#        +xlab(nx)+ylab(ny)+labs(caption=paste0(pe$estimate, ', pval=', pe$p.value)))
+ft <- compare(merge_2[, paste0(score, ".x")], merge_2[, paste0(score, ".y")], FALSE, 'fpkm', 'tmm',  merge_2[,'batch'])
+```
+
+Claudio's scores vs FPKM:
+```{r fpkm-cla}
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], FALSE, 'fpkm', 'Claudio', merge_3[,'batch'])
+```
+
+Claudio's scores vs TMM:
+```{r tmm-cla}
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], FALSE, 'tmm', 'Claudio', merge_3[,'batch'])
+```
+
+
+## Endo scores
+
+FPKM vs TMM:
+
+```{r fpkm-tmm-e}
+score <- 'Endothelial'
+ft <- compare(merge_2[, paste0(score, ".x")], merge_2[, paste0(score, ".y")], FALSE, 'fpkm', 'tmm',  merge_2[,'batch'])
+```
+
+Claudio's scores vs FPKM:
+```{r fpkm-cla-e}
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], FALSE, 'fpkm', 'Claudio', merge_3[,'batch'])
+```
+
+Claudio's scores vs TMM:
+```{r tmm-cla-e}
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], FALSE, 'tmm', 'Claudio', merge_3[,'batch'])
+```
+
+## CAF scores
+
+FPKM vs TMM:
+
+```{r fpkm-tmm-c}
+score <- 'CAF'
+ft <- compare(merge_2[, paste0(score, ".x")], merge_2[, paste0(score, ".y")], FALSE, 'fpkm', 'tmm',  merge_2[,'batch'])
+```
+
+Claudio's scores vs FPKM:
+```{r fpkm-cla-c}
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], FALSE, 'fpkm', 'Claudio', merge_3[,'batch'])
+```
+
+Claudio's scores vs TMM:
+```{r tmm-cla-c}
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], FALSE, 'tmm', 'Claudio', merge_3[,'batch'])
+```
+
+## Leuco with log
+```{r leucolog}
+score <- 'Leucocyte'
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], TRUE, 'fpkm', 'Claudio', merge_3[,'batch'])
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], TRUE, 'tmm', 'Claudio', merge_3[,'batch'])
+```
+
+## CAF with log
+```{r caflog}
+score <- 'CAF'
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], TRUE, 'fpkm', 'Claudio', merge_3[,'batch'])
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], TRUE, 'tmm', 'Claudio', merge_3[,'batch'])
+```
+
+## Endo with log
+```{r caflog}
+score <- 'Endothelial'
+ft <- compare(merge_3[, paste0(score, ".x")], merge_3[, paste0(score)], TRUE, 'fpkm', 'Claudio', merge_3[,'batch'])
+ft <- compare(merge_3[, paste0(score, ".y")], merge_3[, paste0(score)], TRUE, 'tmm', 'Claudio', merge_3[,'batch'])
+```

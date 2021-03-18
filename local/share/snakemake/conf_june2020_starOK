@@ -77,3 +77,11 @@ THR_FRAC_H=0.3
 THR_FRAC_ASSIGNED=0.6
 PCS_2_THR=30
 LEUCO_THR=48
+
+
+### Kat/Franziska phospo-P
+PHO="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/phospho_72_lmx_july2020.tsv"
+
+
+### pdxopedia
+CTX=SNAKE_ROOT+"/prj/pdxopedia/local/share/data/treats/august2020/Treatments_Eugy_Ele_fix0cetuxi_201005_cetuxi3w.tsv"

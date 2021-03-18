@@ -325,3 +325,66 @@ rule remove_samples_readsQC:
         """
  
 # TODO last filtering step on selected_metadata_annot_final_nolinfo_nooutlier
+
+
+### Kat/Franziska phospo-P
+rule KF_samples:
+    input: meda="selected_metadata_annot_final_nolinfo_nooutlier", filter=PHO
+    output: "phospho_72_lmx_july2020_metadata.tsv"
+    shell:
+        """
+            cat {input.meda} |  bawk 'NR == 1' > {output}
+            cat {input.meda} | filter_1col 1 <(cut -f2 {input.filter}) >> {output}
+
+        """
+
+### This one could filter samples too, but maybe we want to have the whole counts first?
+rule genes:
+    input: "gene_len", "merged_hs_mm.tsv.gz"
+    output: "H_gene_len.tsv", "H_readcount.tsv.gz"
+    run:
+        import pandas as pd
+        leng = pd.read_csv(input[0], sep="\t")
+        counts = pd.read_csv(input[1], sep="\t", compression='gzip')
+        leng = leng[~leng.Geneid.str.contains("^M_")]
+        counts = counts[~counts.Geneid.str.contains("^M_")]
+        leng.Geneid = leng.Geneid.str.slice(2)
+        counts.Geneid = counts.Geneid.str.slice(2)
+        leng.to_csv(output[0], sep='\t', header=True, index=False)	
+        counts.to_csv(output[1], sep='\t', header=True, index=False, compression='gzip')	
+
+rule filter_samp:
+    input: "H_readcount.tsv.gz", "phospho_72_lmx_july2020_metadata.tsv"
+    output: "phospho_72_lmx_july2020_readcount.tsv.gz"
+    run:
+        import pandas as pd
+        df = pd.read_csv(input[0], sep="\t", compression='gzip', index_col=0)
+        filt = pd.read_csv(input[1], sep="\t")
+        # filt = filt.rename(columns={'sample_id_R':'Geneid'})
+        # df = df.loc[:, ~df.columns.isin(filt.index)]
+        df = df.loc[:, df.columns.isin(filt.sample_id_R)]
+        # df = df[[~df.columns.isin(filt.index)]]
+        df.to_csv(output[0], sep='\t', header=True, index=True, compression='gzip')
+
+### add cetuxi in a meaningful way from pdxopedia, check vs old then remove old
+rule cetuxi:
+    input: meta="selected_metadata_annot_final_nolinfo_nooutlier", ctx=CTX
+    output: "selected_metadata_annot_final_nolinfo_nooutlier_ctx"
+    shell:
+        """
+            head -n 1 {input.meta} | bawk '{{print $0,"model","ctx_3w"}}' > {output}
+            sed 1d {input.meta} | bawk '{{print $0,substr($1,0,10)}}' | translate -a -v -e NA <(bawk '{{print $1"LMX",$2 }}' {input.ctx}) 10 >> {output}
+        """
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020_starOK$ grep LMX selected_metadata_annot_final_nolinfo_nooutlier_ctx |bawk '$8!= "NA" && $8*100 != $11'
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020_starOK$ grep LMX selected_metadata_annot_final_nolinfo_nooutlier_ctx |bawk '$8!= "NA"' | wc -l
+#462
+
+rule metadata_filtered:
+    input: "selected_metadata_annot_final_nolinfo_nooutlier_ctx"
+    output: "filtered_metadata_ctx.tsv"
+    shell:
+        """
+            cut -f 1,6,7,11 {input} > {output}
+        """
+
+
