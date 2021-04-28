@@ -1,0 +1,50 @@
+MATRIX="../H_readcount.tsv.gz"
+METADATA="../selected_metadata_annot_final_nolinfo_nooutlier"
+WANTEDT="../../../local/share/data/basali_h_pdo.tsv"
+
+rule select_wanted:
+    input: metadata=METADATA, counts=MATRIX, types=WANTEDT
+    output: counts="selected_counts.tsv.gz", metadata="selected_metadata.tsv"
+    shell:
+        """
+            head -n 1 {input.metadata} | cut -f 1,6,7 > {output.metadata}
+            sed 1d {input.metadata} | filter_1col 7 {input.types} | cut -f 1,6,7 >> {output.metadata}
+            cat <(echo Geneid) <(cut -f 1 {output.metadata}) > {output.counts}.tmp
+            zcat {input.counts} | transpose | filter_1col 1 {output.counts}.tmp | transpose | gzip > {output.counts}            
+        """ 
+
+###
+rule kras_info:
+    input: meta="selected_metadata.tsv", kras="/mnt/trcanmed/snaketree/prj/pdxopedia/local/share/data/dtb_mutations_vlookupAndrea_expandedPRLM.tsv"
+    output: "mut_status.tsv"
+    shell:
+        """
+            head -n1 {input.kras} | cut -f 1,4,5,6,7 > {output}
+            sed 1d {input.kras} | cut -f 1,4,5,6,7 | filter_1col 1 <(sed 1d {input.meta} | bawk '{{print substr($1,0,7)}}' | sort | uniq) >> {output}
+        """
+
+
+rule nomutinfo:
+    input: meta="selected_metadata.tsv", kras="mut_status.tsv"
+    output: "missing_mut_info.tsv"
+    shell:
+        """
+            head -n1  {input.meta} > {output}
+            sed 1d {input.meta} | bawk '{{print substr($1,0,7),$0}}' | filter_1col 1 -v <(sed 1d {input.kras} | cut -f 1) > {output}
+        """
+
+###
+rule split_in_three:
+    input: "human_counts.tsv.gz", "human_metadata.tsv", "organoids_counts.tsv.gz", "organoids_metadata.tsv", "xeno_counts.tsv.gz", "xeno_metadata.tsv"
+
+
+rule split:
+    input: counts="selected_counts.tsv.gz", meta="selected_metadata.tsv", filter="../../../local/share/data/{class}"
+    output: counts="{class}_counts.tsv.gz", metadata="{class}_metadata.tsv"
+    shell:
+        """
+            head -n 1 {input.meta} > {output.metadata}
+            sed 1d {input.meta} | filter_1col 3 {input.filter} >> {output.metadata}
+            cat <(echo Geneid) <(cut -f 1 {output.metadata}) > {output.counts}.tmp
+            zcat {input.counts} | transpose | filter_1col 1 {output.counts}.tmp | transpose | gzip > {output.counts}            
+        """
