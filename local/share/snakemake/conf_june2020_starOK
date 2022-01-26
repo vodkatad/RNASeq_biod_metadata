@@ -85,3 +85,4 @@ PHO="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/phospho_7
 
 ### pdxopedia
 CTX=SNAKE_ROOT+"/prj/pdxopedia/local/share/data/treats/august2020/Treatments_Eugy_Ele_fix0cetuxi_201005_cetuxi3w.tsv"
+RIGHT="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/basali_h_pdo.tsv"

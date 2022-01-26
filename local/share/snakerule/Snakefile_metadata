@@ -387,4 +387,22 @@ rule metadata_filtered:
             cut -f 1,6,7,11 {input} > {output}
         """
 
+rule basali:
+    input: meda="filtered_metadata_ctx.tsv", right=RIGHT
+    output: "filtered_metadata_ctx_basali_human-org-xeno"
+    shell:
+        """
+            cat {input.meda} | bawk 'NR==1' > {output}
+            cat {input.meda} | filter_1col 3 {input.right} >> {output}
+        """
 
+# mviviani@godot:/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/dataset/july2020_starOK$ cat filtered_metadata_ctx_basali_human-org-xeno | bawk '{print $3}' | sed 1d | sort | uniq
+# LMH
+# LMO_BASALE
+# LMO_BASALE.1
+# LMO_BASALE.2
+# LMX_BASALE
+# LMX_BASALE.1
+# PRH
+# PRX_BASALE
+# PRX_BASALE.1
