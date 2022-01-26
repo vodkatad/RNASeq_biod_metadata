@@ -368,7 +368,7 @@ rule filter_samp:
 
 ### add cetuxi in a meaningful way from pdxopedia, check vs old then remove old
 rule cetuxi:
-    input: meta="selected_metadata_annot_final_nolinfo_nooutlier", ctx=CTX
+    input: meta="selected_metadata_annot_final_nolinfo_nooutlier_replisafe", ctx=CTX
     output: "selected_metadata_annot_final_nolinfo_nooutlier_ctx"
     shell:
         """

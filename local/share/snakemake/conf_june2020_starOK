@@ -14,6 +14,11 @@ SRC_DIR=PRJ_ROOT+"/local/src"
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
+if SNAKE_ROOT != "/scratch/trcanmed":
+    NEED_PRJ = "/prj"
+else:
+    NEED_PRJ = ""
+
 DATE="april2020"
 DATA_DIR=PRJ_ROOT+"/local/share/data/metadata_"+DATE
 DATA=PRJ_ROOT+"/local/share/data"
@@ -84,5 +89,5 @@ PHO="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/phospho_7
 
 
 ### pdxopedia
-CTX=SNAKE_ROOT+"/prj/pdxopedia/local/share/data/treats/august2020/Treatments_Eugy_Ele_fix0cetuxi_201005_cetuxi3w.tsv"
+CTX=SNAKE_ROOT+NEED_PRJ+"/pdxopedia/local/share/data/treats/august2020/Treatments_Eugy_Ele_fix0cetuxi_201005_cetuxi3w.tsv"
 RIGHT="/mnt/trcanmed/snaketree/prj/RNASeq_biod_metadata/local/share/data/basali_h_pdo.tsv"
