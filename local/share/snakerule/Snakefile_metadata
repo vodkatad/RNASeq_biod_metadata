@@ -314,6 +314,17 @@ rule n_reads:
         res.to_csv(output.matrix, sep="\t", compression='gzip', header=True)
 
 
+rule suppl_qc:
+    input: qc="reads_info.tsv.gz", meta="selected_metadata_annot_final"
+    output: "rnaseq_samples.xlsx"
+    shell: 
+        """
+            cut -f 1,2,3,4,5,6,7 {input.meta} > {output}.tmp
+            zcat {input.qc} > {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s samples_annotations,reads_qc -o {output} 
+            rm {output}.tmp*
+        """
+
 # selected metadata filtered based on n reads with thr on frac_h and frac_assigned
 rule remove_samples_readsQC:
     input: 'reads_info.tsv.gz'
