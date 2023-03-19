@@ -476,6 +476,6 @@ rule around_tss:
     output: "{up}_{down}_tss.tsv"
     shell:
         """
-            sed 1d {input} | sed 's/Hchr/chr/1' | bawk '$4=="+" {{print $2, $3 - {wildcards.up} - 1, $3 + {wildcards.down}, $1}} \\
+            sed 1d {input} | grep Hchr |  sed 's/Hchr/chr/1' | bawk '$4=="+" {{print $2, $3 - {wildcards.up} - 1, $3 + {wildcards.down}, $1}} \\
                                                         $4=="-" {{print $2, $3 - {wildcards.down} - 1, $3 + {wildcards.up}, $1 }}' > {output}
         """
